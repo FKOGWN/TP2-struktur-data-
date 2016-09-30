@@ -27,13 +27,12 @@ int countElement(list L){
 }
 
 
-void addFirst(char sinyal[], char kode[], list*L){
+void addFirst(char sinyal[], list*L){
 	elemen *baru;
 
 	baru= (elemen *) malloc (sizeof (elemen));
 
 	strcpy(baru->elmt.sinyal,sinyal);
-	strcpy(baru->elmt.kode,kode);
 
 	if((*L).first== NULL){
 		baru->next= NULL;
@@ -45,12 +44,11 @@ void addFirst(char sinyal[], char kode[], list*L){
 	baru= NULL;
 }
 
-void addAfter(elemen *prev, char sinyal[], char kode[], list *L){
+void addAfter(elemen *prev, char sinyal[], list *L){
 	elemen *baru;
 	baru= (elemen *) malloc (sizeof (elemen));
 
 	strcpy(baru-> elmt.sinyal, sinyal);
-	strcpy(baru-> elmt.kode,kode);
 
 	if(prev->next== NULL){
 		baru->next= NULL;
@@ -62,10 +60,10 @@ void addAfter(elemen *prev, char sinyal[], char kode[], list *L){
 	baru= NULL;
 }
 
-void addLast(char sinyal[], char kode[], list *L){
+void addLast(char sinyal[], list *L){
 	if((*L).first== NULL){
 		/*jika list adalah list kosong */
-		addFirst(sinyal, kode, L);
+		addFirst(sinyal, L);
 	}else{
 		/*jika list tidak kosong*/
 		/*mencari elemen terakhir list*/
@@ -74,7 +72,7 @@ void addLast(char sinyal[], char kode[], list *L){
 			/*iterasi*/
 			prev= prev->next;
 		}
-		addAfter(prev, sinyal, kode, L);
+		addAfter(prev, sinyal, L);
 	}
 }
 
@@ -135,15 +133,32 @@ void delAll(list *L){
 	}
 }
 
+void abjad(char jadi[]) {
+  int i, j; /* bikin i sama j buat looping */
+  for (i=0; i<strlen(jadi); i++) { /* untuk setiap huruf di string */
+    if (jadi[i]== '.' || jadi[i]== '-') { /* kalo huruf nya titik ato strip */
+      for (j=i; j<strlen(jadi)-1; j++) { /* untuk setiap huruf di string dimulai dari posisi huruf yang titik ato strip */
+        jadi[j]= jadi[j+1]; /* ganti huruf titik ato strip sama huruf setelahnya */
+      }
+      /* isi j bakal jadi panjang string yang udah dikurangi 1 */
+      jadi[j] = '\0'; /* ganti karakter terakhir sama simbol terminator string */
+      i= 0; /* reset i biar mulai lagi dari awal loop karakternya */
+    }
+  }
+}
+
 void printElement(list L){
 	int n=0;//variabel jumlah sinyal
-	int i,j,k,l;//variabel iterasi
-	int angka,huruf,fix,fix_h,fix_s,fix_t,filter=0,total=0;
-	char jadi[100][50];
+	int j,k,l;//variabel iterasi
+	int angka,huruf,fix,fix_h,fix_s,fix_t,filter=0;
+	char jadi[100];
+	// char temp[100];
 	if(L.first!= NULL){
 		/*jika list tidak kosong*/
 		/*inisialisasi*/
 		elemen *elmt= L.first;
+		elemen *prev= L.first;
+
 		n= 0;
 
 		/*print sinyal yang diterima*/
@@ -153,12 +168,12 @@ void printElement(list L){
 			printf("%s\n", elmt->elmt.sinyal);
 			/*iterasi*/
 			elmt= elmt->next;
-			n++;
+			// n++;
 		}
 
 		/*proses mencari pesan yang terfilter*/
 		elmt=L.first;
-		for(i=0; i<n; i++){
+		while(elmt!= NULL){
 			angka=0,huruf=0,fix=0,k=0,l=0, fix_h=0,fix_s=0,fix_t=0;
 			for(j=0; j<strlen(elmt->elmt.sinyal); j++){
 				// mengecek apakah ada angka atau tidak
@@ -186,26 +201,36 @@ void printElement(list L){
 				// jika ada huruf,titik dan garis sesuai aturan
 				// jika huruf tidak lebih dari lima maka lanjut
 				if(huruf<=5 && fix==3){
-					for(j=0; j<strlen(elmt->elmt.sinyal); j++){
-						if((elmt->elmt.sinyal[j]>='a' && elmt->elmt.sinyal[j]<='z')
-							|| (elmt->elmt.sinyal[j]>='A' && elmt->elmt.sinyal[j]<='Z')){								
-							// elmt->elmt.sinyal[j]=jadi[k][l];
-							printf("%c", elmt->elmt.sinyal[j]);
-							l++;
-						}
-					}
-					printf("\n");
-					total++;
-					k++;
+					strcpy(jadi,elmt->elmt.sinyal);
+					abjad(jadi);
+					strcpy(elmt->elmt.sinyal,jadi);
+					// printf("%s\n", elmt->elmt.sinyal);
+					// total++;
+					// i++;	
 				}else{
 					// menambah filter karena huruf lebih dari lima
+					if(elmt ==(L).first){
+						delFirst(&L);
+					}else{
+						delAfter(prev, &L);
+						elmt= prev;
+					}
 					filter++;
+					// delAfter( &L);
 				}
 			}else{
+				if(elmt ==(L).first){
+					delFirst(&L);
+				}else{
+					delAfter(prev, &L);
+					elmt= prev;
+				}
 				// menambah filter karena mengandung angka
 				filter++;
-				delAfter(L.first, &L);
+				// delAfter(&L);
 			}
+			// printf("%s\n", elmt->elmt.sinyal );
+			prev= elmt;
 			elmt= elmt->next;
 		}
 
@@ -216,10 +241,11 @@ void printElement(list L){
 
 		/*print kode yang disampaikan*/
 		printf("=== Valid Messages List ===\n");
-		printf("%d\n",total );
-		// for(i=0; i<total; i++){
-		// 	printf("%c\n", elmt->elmt.sinyal[i]);
-		// }
+		elmt= L.first;
+		while(elmt!= NULL){
+			printf("%s\n", elmt->elmt.sinyal);
+			elmt= elmt->next;
+		}
 	}else{
 		/*proses jika list kosong*/
 		printf("==== Received Messages ====\n");
